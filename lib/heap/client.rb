@@ -46,11 +46,11 @@ class HeapAPI::Client
     @stubbed = false
     @faraday_adapter = Faraday.default_adapter
     @faraday_adapter_args = []
-    @user_agent = "heap-ruby/#{HeapAPI::VERSION} " +
-        "faraday/#{Faraday::VERSION} ruby/#{RUBY_VERSION} (#{RUBY_PLATFORM})"
+    @user_agent = "heap-ruby/#{HeapAPI::VERSION} " \
+                  "faraday/#{Faraday::VERSION} ruby/#{RUBY_VERSION} (#{RUBY_PLATFORM})"
 
     options.each do |key, value|
-      self.send :"#{key}=", value
+      send :"#{key}=", value
     end
   end
 
@@ -60,14 +60,14 @@ class HeapAPI::Client
   end
 
   def faraday_adapter=(new_adapter)
-    raise RuntimeError, 'Faraday connection already initialized' if @connection
+    raise 'Faraday connection already initialized' if @connection
     @faraday_adapter = new_adapter
   end
 
   def faraday_adapter_args=(new_args)
-    raise RuntimeError, 'Faraday connection already initialized' if @connection
+    raise 'Faraday connection already initialized' if @connection
     unless new_args.instance_of? Array
-      raise ArgumentError, "Arguments must be an Array"
+      raise ArgumentError, 'Arguments must be an Array'
     end
     @faraday_adapter_args = new_args
   end
@@ -86,13 +86,13 @@ class HeapAPI::Client
     ensure_valid_properties! properties
 
     body = {
-      :app_id => @app_id,
-      :identity => identity.to_s,
-      :properties => properties,
+      app_id: @app_id,
+      identity: identity.to_s,
+      properties: properties
     }
     response = connection.post '/api/add_user_properties', body,
-        'User-Agent' => user_agent
-    raise HeapAPI::ApiError.new(response) unless response.success?
+                               'User-Agent' => user_agent
+    raise HeapAPI::ApiError, response unless response.success?
     self
   end
 
@@ -114,18 +114,19 @@ class HeapAPI::Client
     ensure_valid_identity! identity
 
     body = {
-      :app_id => @app_id,
-      :identity => identity.to_s,
-      :event => event,
+      app_id: @app_id,
+      identity: identity.to_s,
+      event: event
     }
+
     unless properties.nil?
       body[:properties] = properties
       ensure_valid_properties! properties
     end
 
     response = connection.post '/api/track', body,
-        'User-Agent' => user_agent
-    raise HeapAPI::ApiError.new(response) unless response.success?
+                               'User-Agent' => user_agent
+    raise HeapAPI::ApiError, response unless response.success?
     self
   end
 
@@ -172,8 +173,8 @@ class HeapAPI::Client
   # @return [Faraday::Connection] a Faraday connection object
   def stubbed_connection!
     stubs = Faraday::Adapter::Test::Stubs.new do |stub|
-      stub.post('/api/add_user_properties') { |env| [204, {}, ''] }
-      stub.post('/api/track') { |env| [204, {}, ''] }
+      stub.post('/api/add_user_properties') { |_env| [204, {}, ''] }
+      stub.post('/api/track') { |_env| [204, {}, ''] }
     end
 
     Faraday.new 'https://heapanalytics.com' do |c|
