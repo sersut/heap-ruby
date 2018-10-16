@@ -119,6 +119,9 @@ class HeapAPI::Client
       event: event
     }
 
+    timestamp = properties.delete(:timestamp)
+    body[:timestamp] = timestamp unless timestamp.nil?
+
     unless properties.nil?
       body[:properties] = properties
       ensure_valid_properties! properties
